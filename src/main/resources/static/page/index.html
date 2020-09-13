@@ -1,0 +1,47 @@
+<title>情绪识别</title>
+<template>
+    <div class="card mt-2 ml-2 mr-2" style="max-width: 550px">
+        <div class="card-body">
+            <h5 class="card-title">情绪识别</h5>
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="res_file" accept="image/*">
+                <label class="custom-file-label" for="res_file" data-browse="选择文件">请选择需要识别的文件</label>
+            </div>
+        </div>
+    </div>
+    <div class="card mt-2 ml-2 mr-2" style="max-width: 550px;display: none;" id="card_result">
+        <img src="" class="card-img-top" alt="">
+        <div class="card-body">
+            <p class="card-text" id="txt_expression"></p>
+            <p class="card-text" id="txt_emotion"></p>
+        </div>
+    </div>
+</template>
+<script>
+    (function () {
+        var cardResult = $('#card_result');
+
+        $("#res_file").change(function () {
+            var file = $(this)[0].files[0];
+            if (!file) return;
+            var loadingBox = Utils.loadingBox('上传中...');
+            cardResult.hide();
+            Utils.apiUpload('/api/face/process', {
+                file: file,
+            }).done(function (res) {
+                if (!res || res.status !== 0) {
+                    Utils.tipBox(res.msg);
+                    return;
+                }
+                cardResult.show();
+                var url = URL.createObjectURL(file);
+                if (file.type.startsWith('image')) {
+                    $('#card_result img').attr('src', url);
+                }
+                $('#txt_expression').text('表情:' + Constant.EXPRESSIONS[res.data.expression]);
+                $('#txt_emotion').text('情绪:' + Constant.EMOTIONS[res.data.emotion]);
+                loadingBox.hide();
+            })
+        });
+    })();
+</script>
